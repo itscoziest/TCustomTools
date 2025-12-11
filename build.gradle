@@ -1,0 +1,51 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.titancustomtools'
+version = 'STABLE'
+
+// REVERTED TO JDK 17 AS REQUESTED
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+    maven {
+        name = "sk89q-repo"
+        url = "https://maven.enginehub.org/repo/"
+    }
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT'
+    compileOnly fileTree(dir: 'libs', include: ['*.jar']) // Kept your libs folder
+
+    compileOnly "com.sk89q.worldguard:worldguard-bukkit:7.0.9"
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:7.2.15"
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}

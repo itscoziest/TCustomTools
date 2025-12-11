@@ -1,0 +1,14 @@
+name: TitanCustomTools
+version: ${version}
+main: com.titancustomtools.TitanCustomTools
+api-version: '1.20'
+authors: [StrikesDev]
+softdepend: [WorldGuard]
+permissions:
+  titancustomtools.give:
+    description: Allows giving custom tools
+    default: op
+commands:
+  titanpick:
+    description: Give custom Titan tools
+    usage: /titanpick <player> <type>
