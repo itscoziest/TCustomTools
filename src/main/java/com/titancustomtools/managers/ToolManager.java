@@ -41,10 +41,10 @@ public class ToolManager {
 
         if (meta == null) return null;
 
-        // Set display name
         meta.setDisplayName(getDisplayName(toolType));
 
-        // Add enchantments from config FIRST
+        meta.setUnbreakable(true);
+
         if (config.contains("enchantments")) {
             for (String enchantStr : config.getStringList("enchantments")) {
                 String[] parts = enchantStr.split(":");
@@ -58,7 +58,6 @@ public class ToolManager {
             }
         }
 
-        // Then add the custom lore message at the bottom
         List<String> lore = new ArrayList<>();
         lore.add(getCustomMessage(toolType));
         meta.setLore(lore);

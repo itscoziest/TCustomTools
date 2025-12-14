@@ -1,6 +1,7 @@
 package com.titancustomtools.listeners.abilities;
 
 import com.titancustomtools.TitanCustomTools;
+import com.titancustomtools.utils.DropHelper;
 import com.titancustomtools.utils.WorldGuardHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -32,9 +33,7 @@ public class ExplosiveAbility {
         block.getWorld().playSound(block.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
         block.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, block.getLocation().add(0.5, 0.5, 0.5), 1);
 
-        // Debug mode check removed to prevent console spam
         List<String> allowedRegions = plugin.getConfig().getStringList("explosive-pickaxe.allowed-regions");
-
         List<Block> blocksAround = new ArrayList<>();
 
         for (int x = -1; x <= 1; x++) {
@@ -49,7 +48,6 @@ public class ExplosiveAbility {
                     Location checkLoc = nearbyBlock.getLocation().add(0.5, 0.5, 0.5);
 
                     if (!WorldGuardHelper.isInMiningRegion(checkLoc, allowedRegions)) {
-                        // Logic remains, but the warning log is gone
                         continue;
                     }
 
@@ -80,7 +78,7 @@ public class ExplosiveAbility {
                 nearbyBlock.setType(Material.AIR);
 
                 for (ItemStack drop : drops) {
-                    nearbyBlock.getWorld().dropItemNaturally(dropLocation, drop);
+                    DropHelper.handleDrop(player, drop, dropLocation);
                 }
                 broken++;
             }

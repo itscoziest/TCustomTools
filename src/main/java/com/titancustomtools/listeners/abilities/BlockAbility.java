@@ -1,12 +1,12 @@
 package com.titancustomtools.listeners.abilities;
 
 import com.titancustomtools.TitanCustomTools;
+import com.titancustomtools.utils.DropHelper;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 
 import java.util.*;
 
@@ -67,7 +67,7 @@ public class BlockAbility {
             event.setDropItems(false);
 
             for (ItemStack drop : newDrops) {
-                block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                DropHelper.handleDrop(player, drop, block.getLocation());
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.titancustomtools.listeners.abilities;
 
 import com.titancustomtools.TitanCustomTools;
+import com.titancustomtools.utils.DropHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -97,21 +98,18 @@ public class LumberjackAbility {
         for (Block log : logs) {
             if (log.equals(block)) continue;
 
-            // Fire BlockBreakEvent so other plugins (like TitanWoodMine) can handle it
             BlockBreakEvent breakEvent = new BlockBreakEvent(log, player);
             Bukkit.getPluginManager().callEvent(breakEvent);
 
-            // Only break the block if the event wasn't cancelled
             if (!breakEvent.isCancelled()) {
                 Collection<ItemStack> drops = log.getDrops(tool, player);
                 log.setType(Material.AIR);
 
                 for (ItemStack drop : drops) {
-                    log.getWorld().dropItemNaturally(log.getLocation(), drop);
+                    DropHelper.handleDrop(player, drop, log.getLocation());
                 }
             }
 
-            // Find nearby leaves
             for (int x = -2; x <= 2; x++) {
                 for (int y = -2; y <= 2; y++) {
                     for (int z = -2; z <= 2; z++) {
@@ -124,9 +122,7 @@ public class LumberjackAbility {
             }
         }
 
-        // Break leaves with events fired
         for (Block leaf : leavesToRemove) {
-            // Fire BlockBreakEvent for leaves too
             BlockBreakEvent leafBreakEvent = new BlockBreakEvent(leaf, player);
             Bukkit.getPluginManager().callEvent(leafBreakEvent);
 
@@ -135,7 +131,7 @@ public class LumberjackAbility {
                 leaf.setType(Material.AIR);
 
                 for (ItemStack drop : drops) {
-                    leaf.getWorld().dropItemNaturally(leaf.getLocation(), drop);
+                    DropHelper.handleDrop(player, drop, leaf.getLocation());
                 }
             }
         }

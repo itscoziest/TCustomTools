@@ -1,13 +1,12 @@
 package com.titancustomtools.listeners.abilities;
 
 import com.titancustomtools.TitanCustomTools;
-import org.bukkit.Bukkit;
+import com.titancustomtools.utils.DropHelper;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,7 +26,6 @@ public class SmelterAbility {
         SMELT_MAP.put(Material.COPPER_ORE, Material.COPPER_INGOT);
         SMELT_MAP.put(Material.DEEPSLATE_COPPER_ORE, Material.COPPER_INGOT);
         SMELT_MAP.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
-
         SMELT_MAP.put(Material.COBBLESTONE, Material.STONE);
         SMELT_MAP.put(Material.COBBLED_DEEPSLATE, Material.DEEPSLATE);
         SMELT_MAP.put(Material.STONE, Material.SMOOTH_STONE);
@@ -36,17 +34,13 @@ public class SmelterAbility {
         SMELT_MAP.put(Material.CLAY, Material.TERRACOTTA);
         SMELT_MAP.put(Material.NETHERRACK, Material.NETHER_BRICK);
         SMELT_MAP.put(Material.CLAY_BALL, Material.BRICK);
-
         SMELT_MAP.put(Material.RAW_IRON, Material.IRON_INGOT);
         SMELT_MAP.put(Material.RAW_GOLD, Material.GOLD_INGOT);
         SMELT_MAP.put(Material.RAW_COPPER, Material.COPPER_INGOT);
-
         SMELT_MAP.put(Material.CACTUS, Material.GREEN_DYE);
         SMELT_MAP.put(Material.SEA_PICKLE, Material.LIME_DYE);
         SMELT_MAP.put(Material.CHORUS_FRUIT, Material.POPPED_CHORUS_FRUIT);
-
         SMELT_MAP.put(Material.WET_SPONGE, Material.SPONGE);
-
         SMELT_MAP.put(Material.OAK_LOG, Material.CHARCOAL);
         SMELT_MAP.put(Material.SPRUCE_LOG, Material.CHARCOAL);
         SMELT_MAP.put(Material.BIRCH_LOG, Material.CHARCOAL);
@@ -77,7 +71,7 @@ public class SmelterAbility {
 
         for (ItemStack drop : drops) {
             ItemStack smelted = new ItemStack(smeltedType, drop.getAmount());
-            block.getWorld().dropItemNaturally(block.getLocation(), smelted);
+            DropHelper.handleDrop(player, smelted, block.getLocation());
         }
     }
 }
