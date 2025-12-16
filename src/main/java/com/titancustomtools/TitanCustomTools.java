@@ -3,6 +3,7 @@ package com.titancustomtools;
 import com.titancustomtools.commands.TitanPickCommand;
 import com.titancustomtools.listeners.StatsListener;
 import com.titancustomtools.listeners.ToolListener;
+import com.titancustomtools.listeners.ToolProtectionListener;
 import com.titancustomtools.managers.StatsManager;
 import com.titancustomtools.managers.ToolManager;
 import com.titancustomtools.utils.TitanPlaceholders;
@@ -29,8 +30,10 @@ public class TitanCustomTools extends JavaPlugin {
 
         getCommand("titanpick").setExecutor(new TitanPickCommand(this));
 
+        // Register Events
         getServer().getPluginManager().registerEvents(new ToolListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
+        getServer().getPluginManager().registerEvents(new ToolProtectionListener(this), this);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TitanPlaceholders(this).register();

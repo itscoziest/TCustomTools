@@ -24,7 +24,12 @@ public class ToolManager {
         this.toolTypeKey = new NamespacedKey(plugin, "tool_type");
     }
 
+    // Overload for backward compatibility (plugins/code calling this without args get Diamond)
     public ItemStack createTool(ToolType toolType) {
+        return createTool(toolType, false);
+    }
+
+    public ItemStack createTool(ToolType toolType, boolean isNetherite) {
         String configPath = toolType.getConfigKey() + "-pickaxe";
         if (toolType == ToolType.LUMBERJACK) {
             configPath = "lumberjack-axe";
@@ -35,7 +40,9 @@ public class ToolManager {
             return null;
         }
 
-        Material material = getMaterialForTool(toolType);
+        // 1. DETERMINE MATERIAL
+        Material material = getMaterialForTool(toolType, isNetherite);
+
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
 
@@ -43,8 +50,12 @@ public class ToolManager {
 
         meta.setDisplayName(getDisplayName(toolType));
 
+        // 2. MAKE UNBREAKABLE
+        // This ensures the Netherite tool (and Diamond) will never break.
         meta.setUnbreakable(true);
 
+        // 3. APPLY ENCHANTS FROM CONFIG
+        // This pulls Efficiency 5, Fortune 3, etc. from your existing config.yml
         if (config.contains("enchantments")) {
             for (String enchantStr : config.getStringList("enchantments")) {
                 String[] parts = enchantStr.split(":");
@@ -62,12 +73,22 @@ public class ToolManager {
         lore.add(getCustomMessage(toolType));
         meta.setLore(lore);
 
+        // Add Persistent Data so other plugins/listeners recognize this tool
         meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING,
                 toolType.name());
 
         item.setItemMeta(meta);
 
         return item;
+    }
+
+    private Material getMaterialForTool(ToolType toolType, boolean isNetherite) {
+        if (toolType == ToolType.LUMBERJACK) {
+            // Lumberjack is an Axe
+            return isNetherite ? Material.NETHERITE_AXE : Material.DIAMOND_AXE;
+        }
+        // All others are Pickaxes
+        return isNetherite ? Material.NETHERITE_PICKAXE : Material.DIAMOND_PICKAXE;
     }
 
     private String getDisplayName(ToolType toolType) {
@@ -104,30 +125,6 @@ public class ToolManager {
         }
     }
 
-    private Material getMaterialForTool(ToolType toolType) {
-        if (toolType == ToolType.LUMBERJACK) {
-            return Material.DIAMOND_AXE;
-        }
-        return Material.DIAMOND_PICKAXE;
-    }
-
-    private String getToolDescription(ToolType toolType) {
-        switch (toolType) {
-            case SMELTER:
-                return "Smelter";
-            case LUMBERJACK:
-                return "Lumberjack";
-            case EXPLOSIVE:
-                return "Explosive";
-            case BLOCK:
-                return "Block Converter";
-            case BOUNTIFUL:
-                return "Bountiful";
-            default:
-                return "";
-        }
-    }
-
     public ToolType getToolType(ItemStack item) {
         if (item == null || !item.hasItemMeta()) {
             return null;
@@ -155,11 +152,6 @@ public class ToolManager {
                 plugin.getConfig().getString("messages.prefix", "&8[&6TitanTools&8] &7"));
         String message = plugin.getConfig().getString("messages." + path, "");
         return prefix + ChatColor.translateAlternateColorCodes('&', message);
-    }
-
-    public String getMessageNoPrefix(String path) {
-        String message = plugin.getConfig().getString("messages." + path, "");
-        return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     public NamespacedKey getToolTypeKey() {

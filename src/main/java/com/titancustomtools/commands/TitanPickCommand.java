@@ -28,8 +28,9 @@ public class TitanPickCommand implements CommandExecutor {
             return true;
         }
 
+        // Keep usage check compatible with 2 args, but mention optional 3rd
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /titanpick <player> <type>");
+            sender.sendMessage(ChatColor.RED + "Usage: /titanpick <player> <type> [netherite]");
             sender.sendMessage(ChatColor.GRAY + "Types: smelter, lumberjack, explosive, block, bountiful");
             return true;
         }
@@ -47,14 +48,27 @@ public class TitanPickCommand implements CommandExecutor {
             return true;
         }
 
-        ItemStack tool = toolManager.createTool(toolType);
+        // LOGIC: Check for explicit "netherite" input.
+        // Any other input (empty, "diamond", "potato") defaults to Diamond for safety.
+        boolean isNetherite = false;
+        if (args.length >= 3) {
+            if (args[2].equalsIgnoreCase("netherite")) {
+                isNetherite = true;
+            }
+        }
+
+        // Pass the boolean to the manager
+        ItemStack tool = toolManager.createTool(toolType, isNetherite);
+
         if (tool == null) {
             sender.sendMessage(ChatColor.RED + "This tool is disabled in the config!");
             return true;
         }
 
         target.getInventory().addItem(tool);
-        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a " + toolType.getDisplayName() + "!");
+
+        String materialName = isNetherite ? "Netherite" : "Diamond";
+        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a " + materialName + " " + toolType.getDisplayName() + "!");
         target.sendMessage(ChatColor.GREEN + "You received a " + toolType.getDisplayName() + "!");
 
         return true;
