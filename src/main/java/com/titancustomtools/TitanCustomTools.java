@@ -29,6 +29,7 @@ public class TitanCustomTools extends JavaPlugin {
         WorldGuardHelper.initialize(this);
 
         getCommand("titanpick").setExecutor(new TitanPickCommand(this));
+        getCommand("blocks").setExecutor(new com.titancustomtools.commands.BlocksCommand(this));
 
         // Register Events
         getServer().getPluginManager().registerEvents(new ToolListener(this), this);

@@ -12,3 +12,6 @@ commands:
   titanpick:
     description: Give custom Titan tools
     usage: /titanpick <player> <type>
+  blocks:
+    description: View your mining stats
+    usage: /blocks [player]

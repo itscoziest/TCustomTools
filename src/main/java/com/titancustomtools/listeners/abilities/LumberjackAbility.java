@@ -103,19 +103,22 @@ public class LumberjackAbility {
 
             if (!breakEvent.isCancelled()) {
                 Collection<ItemStack> drops = log.getDrops(tool, player);
+
                 log.setType(Material.AIR);
 
                 for (ItemStack drop : drops) {
                     DropHelper.handleDrop(player, drop, log.getLocation());
                 }
-            }
 
-            for (int x = -2; x <= 2; x++) {
-                for (int y = -2; y <= 2; y++) {
-                    for (int z = -2; z <= 2; z++) {
-                        Block nearbyBlock = log.getRelative(x, y, z);
-                        if (LEAF_TYPES.contains(nearbyBlock.getType())) {
-                            leavesToRemove.add(nearbyBlock);
+                plugin.getStatsManager().incrementTotal(player, 1);
+
+                for (int x = -2; x <= 2; x++) {
+                    for (int y = -2; y <= 2; y++) {
+                        for (int z = -2; z <= 2; z++) {
+                            Block nearbyBlock = log.getRelative(x, y, z);
+                            if (LEAF_TYPES.contains(nearbyBlock.getType())) {
+                                leavesToRemove.add(nearbyBlock);
+                            }
                         }
                     }
                 }
@@ -123,16 +126,13 @@ public class LumberjackAbility {
         }
 
         for (Block leaf : leavesToRemove) {
-            BlockBreakEvent leafBreakEvent = new BlockBreakEvent(leaf, player);
-            Bukkit.getPluginManager().callEvent(leafBreakEvent);
+            if (!LEAF_TYPES.contains(leaf.getType())) continue;
 
-            if (!leafBreakEvent.isCancelled()) {
-                Collection<ItemStack> drops = leaf.getDrops(tool, player);
-                leaf.setType(Material.AIR);
+            Collection<ItemStack> drops = leaf.getDrops(tool, player);
+            leaf.setType(Material.AIR);
 
-                for (ItemStack drop : drops) {
-                    DropHelper.handleDrop(player, drop, leaf.getLocation());
-                }
+            for (ItemStack drop : drops) {
+                DropHelper.handleDrop(player, drop, leaf.getLocation());
             }
         }
     }

@@ -16,6 +16,6 @@ public class StatsListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        plugin.getStatsManager().incrementBlock(event.getPlayer());
+        plugin.getStatsManager().incrementRaw(event.getPlayer());
     }
 }

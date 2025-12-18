@@ -81,6 +81,8 @@ public class ExplosiveAbility {
                     DropHelper.handleDrop(player, drop, dropLocation);
                 }
                 broken++;
+
+                plugin.getStatsManager().incrementTotal(player, 1);
             }
             processingBlocks.remove(nearbyBlock);
         }
