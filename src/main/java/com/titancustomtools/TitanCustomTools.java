@@ -1,6 +1,8 @@
 package com.titancustomtools;
 
+import com.titancustomtools.commands.BlocksCommand;
 import com.titancustomtools.commands.TitanPickCommand;
+import com.titancustomtools.listeners.AnvilListener;
 import com.titancustomtools.listeners.StatsListener;
 import com.titancustomtools.listeners.ToolListener;
 import com.titancustomtools.listeners.ToolProtectionListener;
@@ -29,12 +31,15 @@ public class TitanCustomTools extends JavaPlugin {
         WorldGuardHelper.initialize(this);
 
         getCommand("titanpick").setExecutor(new TitanPickCommand(this));
-        getCommand("blocks").setExecutor(new com.titancustomtools.commands.BlocksCommand(this));
+        getCommand("blocks").setExecutor(new BlocksCommand(this));
 
         // Register Events
         getServer().getPluginManager().registerEvents(new ToolListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new ToolProtectionListener(this), this);
+
+        // NEW: Register the Anvil Listener
+        getServer().getPluginManager().registerEvents(new AnvilListener(this), this);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TitanPlaceholders(this).register();
