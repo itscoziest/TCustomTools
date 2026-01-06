@@ -22,6 +22,7 @@ public class ToolListener implements Listener {
     private final ExplosiveAbility explosiveAbility;
     private final BlockAbility blockAbility;
     private final BountifulAbility bountifulAbility;
+    private final AdminGodAbility adminGodAbility;
 
     public ToolListener(TitanCustomTools plugin) {
         this.plugin = plugin;
@@ -31,6 +32,7 @@ public class ToolListener implements Listener {
         this.explosiveAbility = new ExplosiveAbility(plugin);
         this.blockAbility = new BlockAbility(plugin);
         this.bountifulAbility = new BountifulAbility(plugin);
+        this.adminGodAbility = new AdminGodAbility(plugin);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -68,6 +70,10 @@ public class ToolListener implements Listener {
 
             case BOUNTIFUL:
                 bountifulAbility.handleBountiful(event, player, block, item);
+                break;
+
+            case GOD:
+                adminGodAbility.handleGodMode(event, player, block, item);
                 break;
         }
     }

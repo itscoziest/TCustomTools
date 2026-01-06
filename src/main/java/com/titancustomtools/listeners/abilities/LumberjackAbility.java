@@ -9,6 +9,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.*;
 
@@ -17,6 +18,7 @@ public class LumberjackAbility {
     private final TitanCustomTools plugin;
     private static final Set<Material> LOG_TYPES = new HashSet<>();
     private static final Set<Material> LEAF_TYPES = new HashSet<>();
+    private static final String METADATA_KEY = "TITAN_LUMBERJACK_ACTIVE";
 
     static {
         LOG_TYPES.add(Material.OAK_LOG);
@@ -70,6 +72,10 @@ public class LumberjackAbility {
     }
 
     public void handleLumberjack(BlockBreakEvent event, Player player, Block block, ItemStack tool) {
+        if (player.hasMetadata(METADATA_KEY)) {
+            return;
+        }
+
         Material blockType = block.getType();
 
         if (!LOG_TYPES.contains(blockType)) {
@@ -93,47 +99,64 @@ public class LumberjackAbility {
             return;
         }
 
-        Set<Block> leavesToRemove = new HashSet<>();
+        player.setMetadata(METADATA_KEY, new FixedMetadataValue(plugin, true));
 
-        for (Block log : logs) {
-            if (log.equals(block)) continue;
+        try {
+            Set<Block> leavesToRemove = new HashSet<>();
 
-            BlockBreakEvent breakEvent = new BlockBreakEvent(log, player);
-            Bukkit.getPluginManager().callEvent(breakEvent);
+            for (Block log : logs) {
+                if (log.equals(block)) continue;
 
-            if (!breakEvent.isCancelled()) {
-                Collection<ItemStack> drops = log.getDrops(tool, player);
+                BlockBreakEvent breakEvent = new BlockBreakEvent(log, player);
+                Bukkit.getPluginManager().callEvent(breakEvent);
 
-                log.setType(Material.AIR);
+                if (!breakEvent.isCancelled()) {
+                    Collection<ItemStack> drops = log.getDrops(tool, player);
 
-                for (ItemStack drop : drops) {
-                    DropHelper.handleDrop(player, drop, log.getLocation());
-                }
+                    log.setType(Material.AIR);
 
-                plugin.getStatsManager().incrementTotal(player, 1);
+                    for (ItemStack drop : drops) {
+                        DropHelper.handleDrop(player, drop, log.getLocation());
+                    }
 
-                for (int x = -2; x <= 2; x++) {
-                    for (int y = -2; y <= 2; y++) {
-                        for (int z = -2; z <= 2; z++) {
-                            Block nearbyBlock = log.getRelative(x, y, z);
-                            if (LEAF_TYPES.contains(nearbyBlock.getType())) {
-                                leavesToRemove.add(nearbyBlock);
+                    plugin.getStatsManager().incrementTotal(player, 1);
+
+                    for (int x = -2; x <= 2; x++) {
+                        for (int y = -2; y <= 2; y++) {
+                            for (int z = -2; z <= 2; z++) {
+                                Block nearbyBlock = log.getRelative(x, y, z);
+                                if (LEAF_TYPES.contains(nearbyBlock.getType())) {
+                                    leavesToRemove.add(nearbyBlock);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        for (Block leaf : leavesToRemove) {
-            if (!LEAF_TYPES.contains(leaf.getType())) continue;
+            // --- CHANGED LOGIC HERE ---
+            for (Block leaf : leavesToRemove) {
+                if (!LEAF_TYPES.contains(leaf.getType())) continue;
 
-            Collection<ItemStack> drops = leaf.getDrops(tool, player);
-            leaf.setType(Material.AIR);
+                // FIX: We must fire a BlockBreakEvent for the leaf so TitanWoodMine sees it!
+                BlockBreakEvent leafBreakEvent = new BlockBreakEvent(leaf, player);
+                Bukkit.getPluginManager().callEvent(leafBreakEvent);
 
-            for (ItemStack drop : drops) {
-                DropHelper.handleDrop(player, drop, leaf.getLocation());
+                if (leafBreakEvent.isCancelled()) {
+                    continue; // If a region plugin protects this leaf, don't break it
+                }
+
+                Collection<ItemStack> drops = leaf.getDrops(tool, player);
+                leaf.setType(Material.AIR);
+
+                for (ItemStack drop : drops) {
+                    DropHelper.handleDrop(player, drop, leaf.getLocation());
+                }
             }
+            // --------------------------
+
+        } finally {
+            player.removeMetadata(METADATA_KEY, plugin);
         }
     }
 

@@ -5,7 +5,8 @@ public enum ToolType {
     LUMBERJACK("Lumberjack Axe", "lumberjack"),
     EXPLOSIVE("Explosive Pickaxe", "explosive"),
     BLOCK("Block Pickaxe", "block"),
-    BOUNTIFUL("Bountiful Pickaxe", "bountiful");
+    BOUNTIFUL("Bountiful Pickaxe", "bountiful"),
+    GOD("God Pickaxe", "god");
 
     private final String displayName;
     private final String configKey;
