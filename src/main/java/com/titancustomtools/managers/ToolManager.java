@@ -35,19 +35,45 @@ public class ToolManager {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                // Header
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&4&k;&r &c&lADMIN GOD PICKAXE &4&k;&r"));
                 meta.setUnbreakable(true);
-
-                // Overpowered Enchants
                 meta.addEnchant(Enchantment.DIG_SPEED, 50, true);
                 meta.addEnchant(Enchantment.LOOT_BONUS_BLOCKS, 10, true);
                 meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ENCHANTS);
 
-                // SIMPLIFIED LORE
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "The ultimate power for admins.");
                 lore.add(ChatColor.GRAY + "Lightning | Explosive | Auto-Smelt");
+                meta.setLore(lore);
+
+                meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING, toolType.name());
+                item.setItemMeta(meta);
+            }
+            return item;
+        }
+
+        // --- SPECIAL HANDLING FOR TITAN PICKAXE (CLIENT REQUEST) ---
+        if (toolType == ToolType.TITAN) {
+            ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                // THEME FIX: Aqua + Italic (Matches other tools)
+                meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Pickaxe");
+
+                meta.setUnbreakable(true);
+                meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+
+                // Enchants: Efficiency 6, Fortune 4
+                meta.addEnchant(Enchantment.DIG_SPEED, 6, true);
+                meta.addEnchant(Enchantment.LOOT_BONUS_BLOCKS, 4, true);
+
+                // THEME FIX: Dark Purple + Italic (Matches other tools)
+                // Removed headers and bullet points to avoid broken symbols
+                List<String> lore = new ArrayList<>();
+                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Explosive + Bountiful");
+                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "You won't lose this on death");
+                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "You won't lose this on prestige or rebirth");
+
                 meta.setLore(lore);
 
                 meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING, toolType.name());

@@ -72,6 +72,13 @@ public class ToolListener implements Listener {
                 bountifulAbility.handleBountiful(event, player, block, item);
                 break;
 
+            case TITAN:
+                // Run Bountiful FIRST to scan neighbors before Explosive destroys them
+                bountifulAbility.handleBountiful(event, player, block, item);
+                // Run Explosive SECOND to blast the area
+                explosiveAbility.handleExplosive(event, player, block, item);
+                break;
+
             case GOD:
                 adminGodAbility.handleGodMode(event, player, block, item);
                 break;

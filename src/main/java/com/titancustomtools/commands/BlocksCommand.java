@@ -28,8 +28,10 @@ public class BlocksCommand implements CommandExecutor {
         Player senderPlayer = (Player) sender;
         OfflinePlayer target = senderPlayer;
 
+        // Logic for checking other players
         if (args.length > 0) {
-            if (sender.hasPermission("titancustomtools.admin") || sender.isOp()) {
+            // Checks for specific permission OR admin permission OR Op status
+            if (sender.hasPermission("titancustomtools.blocks.others") || sender.hasPermission("titancustomtools.admin") || sender.isOp()) {
                 target = Bukkit.getOfflinePlayer(args[0]);
 
                 if (!target.hasPlayedBefore() && !target.isOnline()) {
@@ -45,6 +47,7 @@ public class BlocksCommand implements CommandExecutor {
         StatsManager stats = plugin.getStatsManager();
         long total = stats.getTotalBlocks(target);
 
+        // Determine display name (You vs PlayerName)
         String name = (target.getUniqueId().equals(senderPlayer.getUniqueId())) ? "You" : target.getName();
 
         String msg = String.format("&e%s broken: %,d",

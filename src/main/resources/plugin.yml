@@ -8,6 +8,9 @@ permissions:
   titancustomtools.give:
     description: Allows giving custom tools
     default: op
+  titancustomtools.blocks.others:
+    description: Allows checking other players block stats
+    default: op
 commands:
   titanpick:
     description: Give custom Titan tools

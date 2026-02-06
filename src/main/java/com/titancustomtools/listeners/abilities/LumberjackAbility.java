@@ -115,8 +115,11 @@ public class LumberjackAbility {
 
                     log.setType(Material.AIR);
 
-                    for (ItemStack drop : drops) {
-                        DropHelper.handleDrop(player, drop, log.getLocation());
+                    // FIX: Only drop items if another plugin (TitanUtils) hasn't already handled/cancelled drops
+                    if (breakEvent.isDropItems()) {
+                        for (ItemStack drop : drops) {
+                            DropHelper.handleDrop(player, drop, log.getLocation());
+                        }
                     }
 
                     plugin.getStatsManager().incrementTotal(player, 1);

@@ -8,21 +8,29 @@ import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import com.titanutils.TitanUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class DropHelper {
 
-    /**
-     * Helper method to check if a location is inside a region starting with "Mine_"
-     */
-    private static boolean isInsideMineRegion(Location location) {
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") == null) {
-            return true;
+    private static TitanUtils getTitanUtils() {
+        Plugin pl = Bukkit.getPluginManager().getPlugin("TitanUtils");
+        if (pl != null && pl.isEnabled() && pl instanceof TitanUtils) {
+            return (TitanUtils) pl;
         }
+        return null;
+    }
+
+    private static boolean isInsideMineRegion(Location location) {
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") == null) return true;
 
         try {
             RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
@@ -37,8 +45,15 @@ public class DropHelper {
         } catch (NoClassDefFoundError | Exception e) {
             return false;
         }
-
         return false;
+    }
+
+    private static void alertFullInventory(Player player, ItemStack item) {
+        if (!player.getInventory().contains(item.getType())) {
+            return;
+        }
+        player.sendTitle(ChatColor.RED + "Inventory is full", ChatColor.GRAY + "Clear some space!", 0, 20, 10);
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
     }
 
     public static void handleDrop(Player player, ItemStack item, Location location) {
@@ -47,26 +62,30 @@ public class DropHelper {
         boolean addedToInventory = false;
 
         try {
-            if (Bukkit.getPluginManager().isPluginEnabled("TitanUtils")) {
-                TitanUtils titanUtils = (TitanUtils) Bukkit.getPluginManager().getPlugin("TitanUtils");
+            TitanUtils utils = getTitanUtils();
 
-                if (titanUtils != null && titanUtils.getAutoPickupManager() != null) {
+            if (utils != null && utils.getAutoPickupManager() != null) {
 
-                    if (titanUtils.getAutoPickupManager().isAutoPickupEnabled(player) && isInsideMineRegion(location)) {
+                // FILTER CHECK: If filtered, RETURN immediately.
+                // This skips the inventory add AND the fallback drop. Item Deleted.
+                if (utils.getAutoPickupManager().isFiltered(player, item.getType())) {
+                    return;
+                }
 
-                        HashMap<Integer, ItemStack> remaining = player.getInventory().addItem(item);
-                        addedToInventory = true;
+                if (utils.getAutoPickupManager().isAutoPickupEnabled(player) && isInsideMineRegion(location)) {
 
-                        if (!remaining.isEmpty()) {
-                            for (ItemStack leftover : remaining.values()) {
-                                location.getWorld().dropItemNaturally(location, leftover);
-                            }
+                    HashMap<Integer, ItemStack> remaining = player.getInventory().addItem(item);
+                    addedToInventory = true;
+
+                    if (!remaining.isEmpty()) {
+                        for (ItemStack leftover : remaining.values()) {
+                            location.getWorld().dropItemNaturally(location, leftover);
+                            alertFullInventory(player, leftover);
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            Bukkit.getLogger().warning("[TitanCustomTools] Error checking AutoPickup status: " + e.getMessage());
             e.printStackTrace();
         }
 

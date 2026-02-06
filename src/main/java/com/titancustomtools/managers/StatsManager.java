@@ -8,17 +8,17 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StatsManager {
 
     private final TitanCustomTools plugin;
 
-    private final Map<UUID, Long> totalBlocksCache = new HashMap<>();
-
-    private final Map<UUID, Long> rawBlocksCache = new HashMap<>();
+    // FIXED: Use ConcurrentHashMap to prevent crashes during async saves
+    private final Map<UUID, Long> totalBlocksCache = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> rawBlocksCache = new ConcurrentHashMap<>();
 
     public StatsManager(TitanCustomTools plugin) {
         this.plugin = plugin;
@@ -34,17 +34,13 @@ public class StatsManager {
 
     public void incrementRaw(Player player) {
         UUID uuid = player.getUniqueId();
-
-        long currentRaw = getRawBlocks(player);
-        rawBlocksCache.put(uuid, currentRaw + 1);
-
+        rawBlocksCache.merge(uuid, 1L, Long::sum);
         incrementTotal(player, 1);
     }
 
     public void incrementTotal(Player player, int amount) {
         UUID uuid = player.getUniqueId();
-        long currentTotal = getTotalBlocks(player);
-        totalBlocksCache.put(uuid, currentTotal + amount);
+        totalBlocksCache.merge(uuid, (long) amount, Long::sum);
     }
 
     public long getTotalBlocks(OfflinePlayer player) {
@@ -83,17 +79,32 @@ public class StatsManager {
     }
 
     public void saveData() {
-        ConfigurationSection sec = plugin.getConfig().createSection("stats");
+        // Create a copy to save safely
+        Map<UUID, Long> totalCopy = new ConcurrentHashMap<>(totalBlocksCache);
+        Map<UUID, Long> rawCopy = new ConcurrentHashMap<>(rawBlocksCache);
 
-        for (Map.Entry<UUID, Long> entry : totalBlocksCache.entrySet()) {
-            sec.set(entry.getKey().toString() + ".total", entry.getValue());
+        // Run the config write synchronously to be safe with Bukkit API
+        // or just ensure we don't access the live maps.
+        // Since set() updates memory, we can do this part, but saveConfig writes to disk.
+        // Ideally, we schedule the save back to main thread or keep it async if careful.
+        // For safety, we will just set values here.
+
+        try {
+            ConfigurationSection sec = plugin.getConfig().createSection("stats");
+
+            for (Map.Entry<UUID, Long> entry : totalCopy.entrySet()) {
+                sec.set(entry.getKey().toString() + ".total", entry.getValue());
+            }
+
+            for (Map.Entry<UUID, Long> entry : rawCopy.entrySet()) {
+                sec.set(entry.getKey().toString() + ".raw", entry.getValue());
+            }
+
+            // Note: saveConfig() writes to disk. It's usually okay async but better to be safe.
+            plugin.saveConfig();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        for (Map.Entry<UUID, Long> entry : rawBlocksCache.entrySet()) {
-            sec.set(entry.getKey().toString() + ".raw", entry.getValue());
-        }
-
-        plugin.saveConfig();
     }
 
     private void loadData() {

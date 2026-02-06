@@ -6,6 +6,7 @@ public enum ToolType {
     EXPLOSIVE("Explosive Pickaxe", "explosive"),
     BLOCK("Block Pickaxe", "block"),
     BOUNTIFUL("Bountiful Pickaxe", "bountiful"),
+    TITAN("Titan Pickaxe", "titan"),
     GOD("God Pickaxe", "god");
 
     private final String displayName;

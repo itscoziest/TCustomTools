@@ -30,7 +30,7 @@ public class TitanPickCommand implements CommandExecutor {
 
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "Usage: /titanpick <player> <type> [netherite]");
-            sender.sendMessage(ChatColor.GRAY + "Types: smelter, lumberjack, explosive, block, bountiful");
+            sender.sendMessage(ChatColor.GRAY + "Types: titan, smelter, lumberjack, explosive, block, bountiful");
             return true;
         }
 
@@ -43,12 +43,12 @@ public class TitanPickCommand implements CommandExecutor {
         ToolType toolType = ToolType.fromString(args[1]);
         if (toolType == null) {
             sender.sendMessage(ChatColor.RED + "Invalid tool type!");
-            sender.sendMessage(ChatColor.GRAY + "Types: smelter, lumberjack, explosive, block, bountiful");
+            sender.sendMessage(ChatColor.GRAY + "Types: titan, smelter, lumberjack, explosive, block, bountiful");
             return true;
         }
 
-        if (toolType == ToolType.GOD && !sender.isOp()) {
-            sender.sendMessage(ChatColor.RED + "Only OP can give the God Pickaxe.");
+        if ((toolType == ToolType.GOD || toolType == ToolType.TITAN) && !sender.isOp()) {
+            sender.sendMessage(ChatColor.RED + "Only OP can give the God or Titan Pickaxe.");
             return true;
         }
 
@@ -70,6 +70,7 @@ public class TitanPickCommand implements CommandExecutor {
 
         String materialName = isNetherite ? "Netherite" : "Diamond";
         if (toolType == ToolType.GOD) materialName = "Divine";
+        if (toolType == ToolType.TITAN) materialName = "Titan";
 
         sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a " + materialName + " " + toolType.getDisplayName() + "!");
         target.sendMessage(ChatColor.GREEN + "You received a " + toolType.getDisplayName() + "!");
