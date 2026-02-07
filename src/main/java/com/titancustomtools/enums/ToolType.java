@@ -7,7 +7,9 @@ public enum ToolType {
     BLOCK("Block Pickaxe", "block"),
     BOUNTIFUL("Bountiful Pickaxe", "bountiful"),
     TITAN("Titan Pickaxe", "titan"),
-    GOD("God Pickaxe", "god");
+    GOD("God Pickaxe", "god"),
+    SWIFTCASTER("Swiftcaster Rod", "swiftcaster"),
+    HELLFIRE("Hellfire Rod", "hellfire");
 
     private final String displayName;
     private final String configKey;

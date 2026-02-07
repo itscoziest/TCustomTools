@@ -52,23 +52,17 @@ public class ToolManager {
             return item;
         }
 
-        // --- SPECIAL HANDLING FOR TITAN PICKAXE (CLIENT REQUEST) ---
+        // --- SPECIAL HANDLING FOR TITAN PICKAXE ---
         if (toolType == ToolType.TITAN) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                // THEME FIX: Aqua + Italic (Matches other tools)
                 meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Pickaxe");
-
                 meta.setUnbreakable(true);
                 meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
-
-                // Enchants: Efficiency 6, Fortune 4
                 meta.addEnchant(Enchantment.DIG_SPEED, 6, true);
                 meta.addEnchant(Enchantment.LOOT_BONUS_BLOCKS, 4, true);
 
-                // THEME FIX: Dark Purple + Italic (Matches other tools)
-                // Removed headers and bullet points to avoid broken symbols
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Explosive + Bountiful");
                 lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "You won't lose this on death");
@@ -84,12 +78,20 @@ public class ToolManager {
 
         // --- STANDARD LOGIC FOR OTHER TOOLS ---
         String configPath = toolType.getConfigKey() + "-pickaxe";
+
+        // Handle irregular config paths
         if (toolType == ToolType.LUMBERJACK) {
             configPath = "lumberjack-axe";
+        } else if (toolType == ToolType.SWIFTCASTER) {
+            configPath = "swiftcaster-rod";
+        } else if (toolType == ToolType.HELLFIRE) {
+            configPath = "hellfire-rod";
         }
 
         ConfigurationSection config = plugin.getConfig().getConfigurationSection(configPath);
-        if (config == null || !config.getBoolean("enabled", true)) {
+
+        // If config section exists, check if enabled. If not exists, default to true.
+        if (config != null && !config.getBoolean("enabled", true)) {
             return null;
         }
 
@@ -101,8 +103,10 @@ public class ToolManager {
 
         meta.setDisplayName(getDisplayName(toolType));
         meta.setUnbreakable(true);
+        meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
 
-        if (config.contains("enchantments")) {
+        // Apply Enchantments from Config
+        if (config != null && config.contains("enchantments")) {
             for (String enchantStr : config.getStringList("enchantments")) {
                 String[] parts = enchantStr.split(":");
                 if (parts.length == 2) {
@@ -129,6 +133,9 @@ public class ToolManager {
         if (toolType == ToolType.LUMBERJACK) {
             return isNetherite ? Material.NETHERITE_AXE : Material.DIAMOND_AXE;
         }
+        if (toolType == ToolType.SWIFTCASTER || toolType == ToolType.HELLFIRE) {
+            return Material.FISHING_ROD;
+        }
         return isNetherite ? Material.NETHERITE_PICKAXE : Material.DIAMOND_PICKAXE;
     }
 
@@ -139,6 +146,8 @@ public class ToolManager {
             case EXPLOSIVE: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Explosive Pickaxe";
             case BLOCK: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Block Pickaxe";
             case BOUNTIFUL: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Bountiful Pickaxe";
+            case SWIFTCASTER: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Swiftcaster Rod";
+            case HELLFIRE: return ChatColor.RED + "" + ChatColor.ITALIC + "Hellfire Rod";
             default: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Custom Tool";
         }
     }
@@ -150,6 +159,8 @@ public class ToolManager {
             case EXPLOSIVE: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Blast your way to the top!";
             case BLOCK: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Convert blocks instantly!";
             case BOUNTIFUL: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Drops the ores from others nearby!";
+            case SWIFTCASTER: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Bites twice as fast!";
+            case HELLFIRE: return ChatColor.GOLD + "" + ChatColor.ITALIC + "Can fish in Lava!";
             default: return "";
         }
     }
