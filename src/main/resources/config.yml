@@ -5,6 +5,8 @@ messages:
   tool-given: '&aGave {player} a {tool}!'
   tool-received: '&aYou received a {tool}!'
 
+
+
 smelter-pickaxe:
   enabled: true
   enchantments: []
@@ -18,8 +20,7 @@ lumberjack-axe:
 explosive-pickaxe:
   enabled: true
   debug-mode: true
-  # The explosive ability will only work inside WorldGuard regions
-  # that contain any of these names.
+
   allowed-regions:
     - mine
     - wood
@@ -39,4 +40,74 @@ block-pickaxe:
 bountiful-pickaxe:
   enabled: true
   scan-radius: 1
+  enchantments: []
+
+
+
+lightning-pickaxe:
+  enabled: true
+  proc-chance: 0.05
+  enchantments: []
+
+keyfinder-pickaxe:
+  enabled: true
+  key-chance: 0.0005
+  titan-key-chance: 0.00005
+  enchantments: []
+
+currency-pickaxe:
+  enabled: true
+  activation-chance: 0.005
+  rain-duration: 10
+  money-chance: 0.15
+  token-chance: 0.10
+  ticket-chance: 0.10
+  enchantments: []
+
+nitro-pickaxe:
+  enabled: true
+  proc-chance: 0.03
+  enchantments: []
+
+rebirth-pickaxe:
+  enabled: true
+  proc-chance: 0.001
+  enchantments: []
+
+
+
+swiftcaster-rod:
+  enabled: true
+  enchantments: []
+
+hellfire-rod:
+  enabled: true
+  enchantments: []
+
+
+
+titan-rod:
+  enabled: true
+  point-chance: 0.01
+  double-chance: 0.003
+  enchantments: []
+
+ticket-rod:
+  enabled: true
+  chance: 0.25
+  enchantments: []
+
+token-rod:
+  enabled: true
+  chance: 0.25
+  enchantments: []
+
+crate-rod:
+  enabled: true
+  key-chance: 0.05
+  enchantments: []
+
+lightning-rod:
+  enabled: true
+  strike-chance: 0.15
   enchantments: []

@@ -31,17 +31,8 @@ public class ToolManager {
         this.maxUsesKey = new NamespacedKey(plugin, "max_uses");
     }
 
-    // Overloaded method for standard calls
-    public ItemStack createTool(ToolType toolType) {
-        return createTool(toolType, false, -1);
-    }
-
-    public ItemStack createTool(ToolType toolType, boolean isNetherite) {
-        return createTool(toolType, isNetherite, -1);
-    }
-
     public ItemStack createTool(ToolType toolType, boolean isNetherite, int uses) {
-        // --- GOD / TITAN Logic ---
+        // --- GOD PICKAXE ---
         if (toolType == ToolType.GOD) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
@@ -55,6 +46,7 @@ public class ToolManager {
             return item;
         }
 
+        // --- TITAN PICKAXE ---
         if (toolType == ToolType.TITAN) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
@@ -68,11 +60,48 @@ public class ToolManager {
             return item;
         }
 
-        // --- STANDARD TOOL LOGIC ---
-        String configPath = toolType.getConfigKey() + "-pickaxe";
+        // --- REBIRTH PICKAXE ---
+        if (toolType == ToolType.REBIRTH) {
+            ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.ITALIC + "Rebirth Pickaxe");
+                meta.setUnbreakable(true);
+                meta.addEnchant(Enchantment.DIG_SPEED, 8, true);
+                meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING, toolType.name());
+
+                List<String> lore = new ArrayList<>();
+                lore.add(getCustomMessage(toolType));
+
+                if (uses > 0) {
+                    meta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, uses);
+                    meta.getPersistentDataContainer().set(maxUsesKey, PersistentDataType.INTEGER, uses);
+                    lore.add(" ");
+                    lore.add(ChatColor.GRAY + "Uses: " + ChatColor.GREEN + uses + "/" + uses);
+                }
+
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+            }
+            return item;
+        }
+
+        // --- CONFIG PATH LOGIC ---
+        String configPath;
+        if (isRod(toolType)) {
+            // Converts "lightning_rod" -> "lightning-rod" to match config
+            configPath = toolType.getConfigKey().replace("_", "-");
+            // If the key didn't have "_rod" (like swiftcaster), append "-rod"
+            if (!configPath.endsWith("-rod")) {
+                configPath += "-rod";
+            }
+        } else {
+            // Pickaxes: "lightning" -> "lightning-pickaxe"
+            configPath = toolType.getConfigKey() + "-pickaxe";
+        }
+
+        // Specific overrides for old tools
         if (toolType == ToolType.LUMBERJACK) configPath = "lumberjack-axe";
-        else if (toolType == ToolType.SWIFTCASTER) configPath = "swiftcaster-rod";
-        else if (toolType == ToolType.HELLFIRE) configPath = "hellfire-rod";
 
         ConfigurationSection config = plugin.getConfig().getConfigurationSection(configPath);
         if (config != null && !config.getBoolean("enabled", true)) {
@@ -112,8 +141,7 @@ public class ToolManager {
             lore.add(" ");
             lore.add(ChatColor.GRAY + "Uses: " + ChatColor.GREEN + uses + "/" + uses);
         } else {
-            // Permanent logic for rods
-            if (toolType == ToolType.SWIFTCASTER || toolType == ToolType.HELLFIRE) {
+            if (isRod(toolType)) {
                 lore.add(" ");
                 lore.add(ChatColor.GOLD + "Uses: " + ChatColor.LIGHT_PURPLE + "Permanent");
             }
@@ -126,15 +154,10 @@ public class ToolManager {
         return item;
     }
 
-    /**
-     * Decrements the use of the tool in the player's main hand.
-     * Returns TRUE if the tool broke, FALSE otherwise.
-     */
     public boolean decrementUse(Player player, ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
 
-        // If it doesn't have the key, it's permanent
         if (!meta.getPersistentDataContainer().has(usesKey, PersistentDataType.INTEGER)) {
             return false;
         }
@@ -145,17 +168,14 @@ public class ToolManager {
         int newValue = current - 1;
 
         if (newValue <= 0) {
-            // BROKE
-            player.getInventory().setItemInMainHand(new ItemStack(Material.AIR)); // Remove item
+            player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
-            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Your rod has run out of uses and broke!");
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Your tool has run out of uses and broke!");
             return true;
         }
 
-        // Update NBT
         meta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, newValue);
 
-        // Update Lore
         List<String> lore = meta.getLore();
         if (lore != null) {
             for (int i = 0; i < lore.size(); i++) {
@@ -170,9 +190,13 @@ public class ToolManager {
         return false;
     }
 
+    private boolean isRod(ToolType type) {
+        return type.name().contains("ROD") || type == ToolType.SWIFTCASTER || type == ToolType.HELLFIRE;
+    }
+
     private Material getMaterialForTool(ToolType toolType, boolean isNetherite) {
+        if (isRod(toolType)) return Material.FISHING_ROD;
         if (toolType == ToolType.LUMBERJACK) return isNetherite ? Material.NETHERITE_AXE : Material.DIAMOND_AXE;
-        if (toolType == ToolType.SWIFTCASTER || toolType == ToolType.HELLFIRE) return Material.FISHING_ROD;
         return isNetherite ? Material.NETHERITE_PICKAXE : Material.DIAMOND_PICKAXE;
     }
 
@@ -185,6 +209,20 @@ public class ToolManager {
             case BOUNTIFUL: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Bountiful Pickaxe";
             case SWIFTCASTER: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Swiftcaster Rod";
             case HELLFIRE: return ChatColor.RED + "" + ChatColor.ITALIC + "Hellfire Rod";
+            case TITAN: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Pickaxe";
+
+            case LIGHTNING: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Lightning Pickaxe";
+            case KEYFINDER: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Keyfinder Pickaxe";
+            case CURRENCY: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Currency Pickaxe";
+            case NITRO: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Nitro Pickaxe";
+            case REBIRTH: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Rebirth Pickaxe";
+
+            case TITAN_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Rod";
+            case TICKET_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Ticket Rod";
+            case TOKEN_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Token Rod";
+            case CRATE_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Crate Rod";
+            case LIGHTNING_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Lightning Rod";
+
             default: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Custom Tool";
         }
     }
@@ -198,6 +236,19 @@ public class ToolManager {
             case BOUNTIFUL: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Drops the ores from others nearby!";
             case SWIFTCASTER: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Bites twice as fast!";
             case HELLFIRE: return ChatColor.GOLD + "" + ChatColor.ITALIC + "Can fish in Lava!";
+
+            case LIGHTNING: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to strike lightning and break 3x3 radius!";
+            case KEYFINDER: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "A pickaxe that has low chance to give you random keys!";
+            case CURRENCY: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Low chance to activate a currency rain!";
+            case NITRO: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Gives you a medium chance of activating haste 3 and speed 3!";
+            case REBIRTH: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Explosive & Bountiful combined!";
+
+            case TITAN_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Double chance to get titan point while fishing!";
+            case TICKET_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to fish randomly 10-50 tickets!";
+            case TOKEN_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to fish randomly 10-50 tokens!";
+            case CRATE_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Double chance to obtain fish crate key!";
+            case LIGHTNING_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to strike when you bite and catch something!";
+
             default: return "";
         }
     }
@@ -210,7 +261,6 @@ public class ToolManager {
         try { return ToolType.valueOf(typeStr); } catch (IllegalArgumentException e) { return null; }
     }
 
-    // --- THIS IS THE MISSING METHOD CAUSING THE ERROR ---
     public boolean isCustomTool(ItemStack item) {
         return getToolType(item) != null;
     }
