@@ -5,8 +5,10 @@ import com.titancustomtools.enums.ToolType;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -19,18 +21,27 @@ public class ToolManager {
 
     private final TitanCustomTools plugin;
     private final NamespacedKey toolTypeKey;
+    private final NamespacedKey usesKey;
+    private final NamespacedKey maxUsesKey;
 
     public ToolManager(TitanCustomTools plugin) {
         this.plugin = plugin;
         this.toolTypeKey = new NamespacedKey(plugin, "tool_type");
+        this.usesKey = new NamespacedKey(plugin, "current_uses");
+        this.maxUsesKey = new NamespacedKey(plugin, "max_uses");
     }
 
+    // Overloaded method for standard calls
     public ItemStack createTool(ToolType toolType) {
-        return createTool(toolType, false);
+        return createTool(toolType, false, -1);
     }
 
     public ItemStack createTool(ToolType toolType, boolean isNetherite) {
-        // --- SPECIAL HANDLING FOR GOD PICKAXE ---
+        return createTool(toolType, isNetherite, -1);
+    }
+
+    public ItemStack createTool(ToolType toolType, boolean isNetherite, int uses) {
+        // --- GOD / TITAN Logic ---
         if (toolType == ToolType.GOD) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
@@ -38,59 +49,32 @@ public class ToolManager {
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&4&k;&r &c&lADMIN GOD PICKAXE &4&k;&r"));
                 meta.setUnbreakable(true);
                 meta.addEnchant(Enchantment.DIG_SPEED, 50, true);
-                meta.addEnchant(Enchantment.LOOT_BONUS_BLOCKS, 10, true);
-                meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ENCHANTS);
-
-                List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "The ultimate power for admins.");
-                lore.add(ChatColor.GRAY + "Lightning | Explosive | Auto-Smelt");
-                meta.setLore(lore);
-
                 meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING, toolType.name());
                 item.setItemMeta(meta);
             }
             return item;
         }
 
-        // --- SPECIAL HANDLING FOR TITAN PICKAXE ---
         if (toolType == ToolType.TITAN) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Pickaxe");
                 meta.setUnbreakable(true);
-                meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
                 meta.addEnchant(Enchantment.DIG_SPEED, 6, true);
-                meta.addEnchant(Enchantment.LOOT_BONUS_BLOCKS, 4, true);
-
-                List<String> lore = new ArrayList<>();
-                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Explosive + Bountiful");
-                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "You won't lose this on death");
-                lore.add(ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "You won't lose this on prestige or rebirth");
-
-                meta.setLore(lore);
-
                 meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING, toolType.name());
                 item.setItemMeta(meta);
             }
             return item;
         }
 
-        // --- STANDARD LOGIC FOR OTHER TOOLS ---
+        // --- STANDARD TOOL LOGIC ---
         String configPath = toolType.getConfigKey() + "-pickaxe";
-
-        // Handle irregular config paths
-        if (toolType == ToolType.LUMBERJACK) {
-            configPath = "lumberjack-axe";
-        } else if (toolType == ToolType.SWIFTCASTER) {
-            configPath = "swiftcaster-rod";
-        } else if (toolType == ToolType.HELLFIRE) {
-            configPath = "hellfire-rod";
-        }
+        if (toolType == ToolType.LUMBERJACK) configPath = "lumberjack-axe";
+        else if (toolType == ToolType.SWIFTCASTER) configPath = "swiftcaster-rod";
+        else if (toolType == ToolType.HELLFIRE) configPath = "hellfire-rod";
 
         ConfigurationSection config = plugin.getConfig().getConfigurationSection(configPath);
-
-        // If config section exists, check if enabled. If not exists, default to true.
         if (config != null && !config.getBoolean("enabled", true)) {
             return null;
         }
@@ -105,7 +89,6 @@ public class ToolManager {
         meta.setUnbreakable(true);
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
 
-        // Apply Enchantments from Config
         if (config != null && config.contains("enchantments")) {
             for (String enchantStr : config.getStringList("enchantments")) {
                 String[] parts = enchantStr.split(":");
@@ -121,21 +104,75 @@ public class ToolManager {
 
         List<String> lore = new ArrayList<>();
         lore.add(getCustomMessage(toolType));
-        meta.setLore(lore);
 
+        // --- USES LOGIC ---
+        if (uses > 0) {
+            meta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, uses);
+            meta.getPersistentDataContainer().set(maxUsesKey, PersistentDataType.INTEGER, uses);
+            lore.add(" ");
+            lore.add(ChatColor.GRAY + "Uses: " + ChatColor.GREEN + uses + "/" + uses);
+        } else {
+            // Permanent logic for rods
+            if (toolType == ToolType.SWIFTCASTER || toolType == ToolType.HELLFIRE) {
+                lore.add(" ");
+                lore.add(ChatColor.GOLD + "Uses: " + ChatColor.LIGHT_PURPLE + "Permanent");
+            }
+        }
+
+        meta.setLore(lore);
         meta.getPersistentDataContainer().set(toolTypeKey, PersistentDataType.STRING, toolType.name());
         item.setItemMeta(meta);
 
         return item;
     }
 
+    /**
+     * Decrements the use of the tool in the player's main hand.
+     * Returns TRUE if the tool broke, FALSE otherwise.
+     */
+    public boolean decrementUse(Player player, ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+
+        // If it doesn't have the key, it's permanent
+        if (!meta.getPersistentDataContainer().has(usesKey, PersistentDataType.INTEGER)) {
+            return false;
+        }
+
+        int current = meta.getPersistentDataContainer().get(usesKey, PersistentDataType.INTEGER);
+        int max = meta.getPersistentDataContainer().getOrDefault(maxUsesKey, PersistentDataType.INTEGER, current);
+
+        int newValue = current - 1;
+
+        if (newValue <= 0) {
+            // BROKE
+            player.getInventory().setItemInMainHand(new ItemStack(Material.AIR)); // Remove item
+            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Your rod has run out of uses and broke!");
+            return true;
+        }
+
+        // Update NBT
+        meta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, newValue);
+
+        // Update Lore
+        List<String> lore = meta.getLore();
+        if (lore != null) {
+            for (int i = 0; i < lore.size(); i++) {
+                if (lore.get(i).contains("Uses:")) {
+                    lore.set(i, ChatColor.GRAY + "Uses: " + ChatColor.GREEN + newValue + "/" + max);
+                    break;
+                }
+            }
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return false;
+    }
+
     private Material getMaterialForTool(ToolType toolType, boolean isNetherite) {
-        if (toolType == ToolType.LUMBERJACK) {
-            return isNetherite ? Material.NETHERITE_AXE : Material.DIAMOND_AXE;
-        }
-        if (toolType == ToolType.SWIFTCASTER || toolType == ToolType.HELLFIRE) {
-            return Material.FISHING_ROD;
-        }
+        if (toolType == ToolType.LUMBERJACK) return isNetherite ? Material.NETHERITE_AXE : Material.DIAMOND_AXE;
+        if (toolType == ToolType.SWIFTCASTER || toolType == ToolType.HELLFIRE) return Material.FISHING_ROD;
         return isNetherite ? Material.NETHERITE_PICKAXE : Material.DIAMOND_PICKAXE;
     }
 
@@ -168,12 +205,12 @@ public class ToolManager {
     public ToolType getToolType(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return null;
         String typeStr = meta.getPersistentDataContainer().get(toolTypeKey, PersistentDataType.STRING);
         if (typeStr == null) return null;
         try { return ToolType.valueOf(typeStr); } catch (IllegalArgumentException e) { return null; }
     }
 
+    // --- THIS IS THE MISSING METHOD CAUSING THE ERROR ---
     public boolean isCustomTool(ItemStack item) {
         return getToolType(item) != null;
     }
@@ -182,9 +219,5 @@ public class ToolManager {
         String prefix = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("messages.prefix", "&8[&6TitanTools&8] &7"));
         String message = plugin.getConfig().getString("messages." + path, "");
         return prefix + ChatColor.translateAlternateColorCodes('&', message);
-    }
-
-    public NamespacedKey getToolTypeKey() {
-        return toolTypeKey;
     }
 }

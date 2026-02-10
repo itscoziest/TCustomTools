@@ -45,21 +45,28 @@ public class FishingListener implements Listener {
 
         // --- SWIFTCASTER LOGIC ---
         if (toolType == ToolType.SWIFTCASTER) {
-            swiftcasterAbility.handleFishing(event);
+            if (event.getState() == PlayerFishEvent.State.FISHING) {
+                swiftcasterAbility.handleFishing(event);
+            }
+            // Decrement Uses on Catch
+            else if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH) {
+                // IMPORTANT: We pass the item from main hand.
+                // If you support offhand rods, you need more complex checks,
+                // but usually custom tools are mainhand.
+                toolManager.decrementUse(player, item);
+            }
         }
 
         // --- HELLFIRE LOGIC ---
         if (toolType == ToolType.HELLFIRE) {
-            // CAUGHT_FISH, REEL_IN, and IN_GROUND are all attempts to pull back
             if (event.getState() == PlayerFishEvent.State.REEL_IN ||
                     event.getState() == PlayerFishEvent.State.CAUGHT_FISH ||
                     event.getState() == PlayerFishEvent.State.IN_GROUND ||
                     event.getState() == PlayerFishEvent.State.FAILED_ATTEMPT) {
 
-                hellfireAbility.handleReel(event);
+                hellfireAbility.handleReel(event, item); // Pass item to handleReel
             }
             else if (event.getState() == PlayerFishEvent.State.FISHING) {
-                // Player cast the rod
                 hellfireAbility.handleCast(event);
             }
         }

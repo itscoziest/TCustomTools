@@ -29,8 +29,8 @@ public class TitanPickCommand implements CommandExecutor {
         }
 
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /titanpick <player> <type> [netherite]");
-            sender.sendMessage(ChatColor.GRAY + "Types: titan, smelter, lumberjack, explosive, block, bountiful, swiftcaster, hellfire");
+            sender.sendMessage(ChatColor.RED + "Usage: /titanpick <player> <type> [netherite] [uses]");
+            sender.sendMessage(ChatColor.GRAY + "Example: /titanpick Player hellfire false 100");
             return true;
         }
 
@@ -43,23 +43,27 @@ public class TitanPickCommand implements CommandExecutor {
         ToolType toolType = ToolType.fromString(args[1]);
         if (toolType == null) {
             sender.sendMessage(ChatColor.RED + "Invalid tool type!");
-            sender.sendMessage(ChatColor.GRAY + "Types: titan, smelter, lumberjack, explosive, block, bountiful, swiftcaster, hellfire");
-            return true;
-        }
-
-        if ((toolType == ToolType.GOD || toolType == ToolType.TITAN) && !sender.isOp()) {
-            sender.sendMessage(ChatColor.RED + "Only OP can give the God or Titan Pickaxe.");
             return true;
         }
 
         boolean isNetherite = false;
         if (args.length >= 3) {
-            if (args[2].equalsIgnoreCase("netherite")) {
+            if (args[2].equalsIgnoreCase("netherite") || args[2].equalsIgnoreCase("true")) {
                 isNetherite = true;
             }
         }
 
-        ItemStack tool = toolManager.createTool(toolType, isNetherite);
+        // PARSE USES
+        int uses = -1; // Default Permanent
+        if (args.length >= 4) {
+            try {
+                uses = Integer.parseInt(args[3]);
+            } catch (NumberFormatException e) {
+                sender.sendMessage(ChatColor.RED + "Invalid number for uses! Using permanent.");
+            }
+        }
+
+        ItemStack tool = toolManager.createTool(toolType, isNetherite, uses);
 
         if (tool == null) {
             sender.sendMessage(ChatColor.RED + "This tool is disabled in the config!");
@@ -68,14 +72,11 @@ public class TitanPickCommand implements CommandExecutor {
 
         target.getInventory().addItem(tool);
 
-        String materialName = isNetherite ? "Netherite" : "Diamond";
-        if (toolType == ToolType.GOD) materialName = "Divine";
-        if (toolType == ToolType.TITAN) materialName = "Titan";
-        if (toolType == ToolType.SWIFTCASTER) materialName = "Magic";
-        if (toolType == ToolType.HELLFIRE) materialName = "Molten";
+        String typeName = toolType.getDisplayName();
+        String useMsg = (uses > 0) ? " (" + uses + " uses)" : " (Permanent)";
 
-        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a " + materialName + " " + toolType.getDisplayName() + "!");
-        target.sendMessage(ChatColor.GREEN + "You received a " + toolType.getDisplayName() + "!");
+        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " a " + typeName + useMsg);
+        target.sendMessage(ChatColor.GREEN + "You received a " + typeName + useMsg);
 
         return true;
     }

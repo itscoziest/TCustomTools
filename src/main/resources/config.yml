@@ -1,25 +1,19 @@
 messages:
-  prefix: "&8[&6TitanTools&8] &7"
-  no-permission: "&cYou don't have permission to use this command!"
-  player-not-found: "&cPlayer not found!"
-  tool-given: "&aGave {player} a {tool}!"
-  tool-received: "&aYou received a {tool}!"
+  prefix: '&8[&6TitanTools&8] &7'
+  no-permission: '&cYou don''t have permission to use this command!'
+  player-not-found: '&cPlayer not found!'
+  tool-given: '&aGave {player} a {tool}!'
+  tool-received: '&aYou received a {tool}!'
 
 smelter-pickaxe:
   enabled: true
-  enchantments:
-    - "EFFICIENCY:5"
-    - "UNBREAKING:3"
-    - "FORTUNE:3"
+  enchantments: []
 
 lumberjack-axe:
   enabled: true
   check-leaves: true
   max-tree-height: 32
-  enchantments:
-    - "EFFICIENCY:5"
-    - "UNBREAKING:3"
-    - "FORTUNE:3"
+  enchantments: []
 
 explosive-pickaxe:
   enabled: true
@@ -27,31 +21,22 @@ explosive-pickaxe:
   # The explosive ability will only work inside WorldGuard regions
   # that contain any of these names.
   allowed-regions:
-    - "mine"
-    - "wood"
-    - "mastermind"
-    - "enforcer"
-    - "wiseguy"
-    - "underboss"
-    - "hitman"
-    - "prestige"
-  enchantments:
-    - "EFFICIENCY:5"
-    - "UNBREAKING:3"
-    - "FORTUNE:3"
+    - mine
+    - wood
+    - mastermind
+    - enforcer
+    - wiseguy
+    - underboss
+    - hitman
+    - prestige
+  enchantments: []
 
 block-pickaxe:
   enabled: true
   minimum-drops-for-block: 2
-  enchantments:
-    - "EFFICIENCY:5"
-    - "UNBREAKING:3"
-    - "FORTUNE:3"
+  enchantments: []
 
 bountiful-pickaxe:
   enabled: true
   scan-radius: 1
-  enchantments:
-    - "EFFICIENCY:5"
-    - "UNBREAKING:3"
-    - "FORTUNE:3"
+  enchantments: []
