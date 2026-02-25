@@ -35,7 +35,12 @@ public class FishingListener implements Listener {
         this.hellfireAbility = new HellfireAbility(plugin);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    /**
+     * CRITICAL FIX:
+     * Priority = HIGHEST (Runs after Anti-Fishing plugins)
+     * ignoreCancelled = true (If Anti-Fishing cancels it, we stop)
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFish(PlayerFishEvent event) {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
@@ -69,25 +74,29 @@ public class FishingListener implements Listener {
 
         switch (type) {
             case TITAN_ROD:
-                // 1% Base, 0.3% Double
-                double titanChance = plugin.getConfig().getDouble("titan-rod.point-chance", 1.0);
-                double doubleChance = plugin.getConfig().getDouble("titan-rod.double-chance", 1.0);
+                // Default lowered to 0.002 (0.2% or 1 in 500)
+                // If you want it harder, lower 'point-chance' in config.yml
+                double titanChance = plugin.getConfig().getDouble("titan-rod.point-chance", 0.002);
+                double doubleChance = plugin.getConfig().getDouble("titan-rod.double-chance", 0.0001);
 
                 if (roll < titanChance) {
-                    int pts = (1 + random.nextInt(3));
+                    int pts = 1;
                     if (random.nextDouble() < doubleChance) {
-                        pts *= 2;
+                        pts = 2;
                     }
+
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "titanpoints give " + player.getName() + " " + pts);
-                    player.sendMessage(ChatColor.DARK_AQUA + "You caught " + pts + " Titan Points!");
+
+                    // NEW MESSAGE FORMAT
+                    String plural = (pts > 1) ? "s" : "";
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                            "&6&lTITAN POINTS! &7You found &e" + pts + " Titan Point" + plural + " &7while fishing!"));
                 }
                 break;
 
             case TICKET_ROD:
-                // Buffed: Uses config or default 25% (was 10%)
                 double ticketChance = plugin.getConfig().getDouble("ticket-rod.chance", 0.25);
                 if (roll < ticketChance) {
-                    // Buffed: 20-100 tickets
                     int amount = 20 + random.nextInt(81);
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tickets give " + player.getName() + " " + amount);
                     player.sendMessage(ChatColor.LIGHT_PURPLE + "You fished up " + amount + " Tickets!");
@@ -95,10 +104,8 @@ public class FishingListener implements Listener {
                 break;
 
             case TOKEN_ROD:
-                // Buffed: Uses config or default 25% (was 10%)
                 double tokenChance = plugin.getConfig().getDouble("token-rod.chance", 0.25);
                 if (roll < tokenChance) {
-                    // Buffed: 20-100 tokens
                     int amount = 20 + random.nextInt(81);
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tokens give " + player.getName() + " " + amount);
                     player.sendMessage(ChatColor.YELLOW + "You fished up " + amount + " Tokens!");

@@ -15,16 +15,26 @@ public enum ToolType {
     NITRO("Nitro Pickaxe", "nitro"),
     REBIRTH("Rebirth Pickaxe", "rebirth"),
 
-    // Original Rods
+    // Rods
     SWIFTCASTER("Swiftcaster Rod", "swiftcaster"),
     HELLFIRE("Hellfire Rod", "hellfire"),
-
-    // New Rods (Keys now have _rod to be unique)
     TITAN_ROD("Titan Rod", "titan_rod"),
     TICKET_ROD("Ticket Rod", "ticket_rod"),
     TOKEN_ROD("Token Rod", "token_rod"),
     CRATE_ROD("Crate Rod", "crate_rod"),
-    LIGHTNING_ROD("Lightning Rod", "lightning_rod");
+    LIGHTNING_ROD("Lightning Rod", "lightning_rod"),
+
+    // Armor - Diamond
+    DIAMOND_HELMET("Titan Diamond Helmet", "diamond-helmet"),
+    DIAMOND_CHESTPLATE("Titan Diamond Chestplate", "diamond-chestplate"),
+    DIAMOND_LEGGINGS("Titan Diamond Leggings", "diamond-leggings"),
+    DIAMOND_BOOTS("Titan Diamond Boots", "diamond-boots"),
+
+    // Armor - Netherite
+    NETHERITE_HELMET("Titan Netherite Helmet", "netherite-helmet"),
+    NETHERITE_CHESTPLATE("Titan Netherite Chestplate", "netherite-chestplate"),
+    NETHERITE_LEGGINGS("Titan Netherite Leggings", "netherite-leggings"),
+    NETHERITE_BOOTS("Titan Netherite Boots", "netherite-boots");
 
     private final String displayName;
     private final String configKey;

@@ -32,7 +32,6 @@ public class ToolManager {
     }
 
     public ItemStack createTool(ToolType toolType, boolean isNetherite, int uses) {
-        // --- GOD PICKAXE ---
         if (toolType == ToolType.GOD) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
@@ -46,7 +45,6 @@ public class ToolManager {
             return item;
         }
 
-        // --- TITAN PICKAXE ---
         if (toolType == ToolType.TITAN) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
@@ -60,7 +58,6 @@ public class ToolManager {
             return item;
         }
 
-        // --- REBIRTH PICKAXE ---
         if (toolType == ToolType.REBIRTH) {
             ItemStack item = new ItemStack(Material.NETHERITE_PICKAXE);
             ItemMeta meta = item.getItemMeta();
@@ -86,21 +83,18 @@ public class ToolManager {
             return item;
         }
 
-        // --- CONFIG PATH LOGIC ---
         String configPath;
-        if (isRod(toolType)) {
-            // Converts "lightning_rod" -> "lightning-rod" to match config
+        if (isArmor(toolType)) {
+            configPath = toolType.getConfigKey();
+        } else if (isRod(toolType)) {
             configPath = toolType.getConfigKey().replace("_", "-");
-            // If the key didn't have "_rod" (like swiftcaster), append "-rod"
             if (!configPath.endsWith("-rod")) {
                 configPath += "-rod";
             }
         } else {
-            // Pickaxes: "lightning" -> "lightning-pickaxe"
             configPath = toolType.getConfigKey() + "-pickaxe";
         }
 
-        // Specific overrides for old tools
         if (toolType == ToolType.LUMBERJACK) configPath = "lumberjack-axe";
 
         ConfigurationSection config = plugin.getConfig().getConfigurationSection(configPath);
@@ -132,18 +126,19 @@ public class ToolManager {
         }
 
         List<String> lore = new ArrayList<>();
-        lore.add(getCustomMessage(toolType));
+        String msg = getCustomMessage(toolType);
+        if (msg != null && !msg.isEmpty()) {
+            lore.add(msg);
+        }
 
-        // --- USES LOGIC ---
         if (uses > 0) {
             meta.getPersistentDataContainer().set(usesKey, PersistentDataType.INTEGER, uses);
             meta.getPersistentDataContainer().set(maxUsesKey, PersistentDataType.INTEGER, uses);
             lore.add(" ");
             lore.add(ChatColor.GRAY + "Uses: " + ChatColor.GREEN + uses + "/" + uses);
         } else {
-            if (isRod(toolType)) {
-                lore.add(" ");
-                lore.add(ChatColor.GOLD + "Uses: " + ChatColor.LIGHT_PURPLE + "Permanent");
+            if (isRod(toolType) || isArmor(toolType)) {
+                // Do nothing for armor uses display
             }
         }
 
@@ -190,14 +185,30 @@ public class ToolManager {
         return false;
     }
 
-    private boolean isRod(ToolType type) {
+    public boolean isRod(ToolType type) {
         return type.name().contains("ROD") || type == ToolType.SWIFTCASTER || type == ToolType.HELLFIRE;
+    }
+
+    public boolean isArmor(ToolType type) {
+        return type.name().endsWith("_HELMET") || type.name().endsWith("_CHESTPLATE") ||
+                type.name().endsWith("_LEGGINGS") || type.name().endsWith("_BOOTS");
     }
 
     private Material getMaterialForTool(ToolType toolType, boolean isNetherite) {
         if (isRod(toolType)) return Material.FISHING_ROD;
         if (toolType == ToolType.LUMBERJACK) return isNetherite ? Material.NETHERITE_AXE : Material.DIAMOND_AXE;
-        return isNetherite ? Material.NETHERITE_PICKAXE : Material.DIAMOND_PICKAXE;
+
+        switch (toolType) {
+            case DIAMOND_HELMET: return Material.DIAMOND_HELMET;
+            case DIAMOND_CHESTPLATE: return Material.DIAMOND_CHESTPLATE;
+            case DIAMOND_LEGGINGS: return Material.DIAMOND_LEGGINGS;
+            case DIAMOND_BOOTS: return Material.DIAMOND_BOOTS;
+            case NETHERITE_HELMET: return Material.NETHERITE_HELMET;
+            case NETHERITE_CHESTPLATE: return Material.NETHERITE_CHESTPLATE;
+            case NETHERITE_LEGGINGS: return Material.NETHERITE_LEGGINGS;
+            case NETHERITE_BOOTS: return Material.NETHERITE_BOOTS;
+            default: return isNetherite ? Material.NETHERITE_PICKAXE : Material.DIAMOND_PICKAXE;
+        }
     }
 
     private String getDisplayName(ToolType toolType) {
@@ -210,24 +221,36 @@ public class ToolManager {
             case SWIFTCASTER: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Swiftcaster Rod";
             case HELLFIRE: return ChatColor.RED + "" + ChatColor.ITALIC + "Hellfire Rod";
             case TITAN: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Pickaxe";
-
             case LIGHTNING: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Lightning Pickaxe";
             case KEYFINDER: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Keyfinder Pickaxe";
             case CURRENCY: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Currency Pickaxe";
             case NITRO: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Nitro Pickaxe";
             case REBIRTH: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Rebirth Pickaxe";
-
             case TITAN_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Titan Rod";
             case TICKET_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Ticket Rod";
             case TOKEN_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Token Rod";
             case CRATE_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Crate Rod";
             case LIGHTNING_ROD: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Lightning Rod";
 
+            case DIAMOND_HELMET: return ChatColor.AQUA + "" + ChatColor.BOLD + "Titan Helmet";
+            case DIAMOND_CHESTPLATE: return ChatColor.AQUA + "" + ChatColor.BOLD + "Titan Chestplate";
+            case DIAMOND_LEGGINGS: return ChatColor.AQUA + "" + ChatColor.BOLD + "Titan Leggings";
+            case DIAMOND_BOOTS: return ChatColor.AQUA + "" + ChatColor.BOLD + "Titan Boots";
+
+            case NETHERITE_HELMET: return ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Titan Netherite Helmet";
+            case NETHERITE_CHESTPLATE: return ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Titan Netherite Chestplate";
+            case NETHERITE_LEGGINGS: return ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Titan Netherite Leggings";
+            case NETHERITE_BOOTS: return ChatColor.DARK_PURPLE + "" + ChatColor.BOLD + "Titan Netherite Boots";
+
             default: return ChatColor.AQUA + "" + ChatColor.ITALIC + "Custom Tool";
         }
     }
 
     private String getCustomMessage(ToolType toolType) {
+        if (isArmor(toolType)) {
+            return ChatColor.GOLD + "Full Set Bonus: " + ChatColor.YELLOW + "Speed III & Strength II";
+        }
+
         switch (toolType) {
             case SMELTER: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "A trusty pick that smelts what you mine!";
             case LUMBERJACK: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chop down entire trees!";
@@ -236,19 +259,16 @@ public class ToolManager {
             case BOUNTIFUL: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Drops the ores from others nearby!";
             case SWIFTCASTER: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Bites twice as fast!";
             case HELLFIRE: return ChatColor.GOLD + "" + ChatColor.ITALIC + "Can fish in Lava!";
-
             case LIGHTNING: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to strike lightning and break 3x3 radius!";
             case KEYFINDER: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "A pickaxe that has low chance to give you random keys!";
             case CURRENCY: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Low chance to activate a currency rain!";
             case NITRO: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Gives you a medium chance of activating haste 3 and speed 3!";
             case REBIRTH: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Explosive & Bountiful combined!";
-
             case TITAN_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Double chance to get titan point while fishing!";
             case TICKET_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to fish randomly 10-50 tickets!";
             case TOKEN_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to fish randomly 10-50 tokens!";
             case CRATE_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Double chance to obtain fish crate key!";
             case LIGHTNING_ROD: return ChatColor.DARK_PURPLE + "" + ChatColor.ITALIC + "Chance to strike when you bite and catch something!";
-
             default: return "";
         }
     }

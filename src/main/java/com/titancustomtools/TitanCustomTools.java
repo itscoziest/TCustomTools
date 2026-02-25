@@ -9,6 +9,7 @@ import com.titancustomtools.listeners.ToolListener;
 import com.titancustomtools.listeners.ToolProtectionListener;
 import com.titancustomtools.managers.StatsManager;
 import com.titancustomtools.managers.ToolManager;
+import com.titancustomtools.tasks.ArmorTask;
 import com.titancustomtools.utils.TitanPlaceholders;
 import com.titancustomtools.utils.WorldGuardHelper;
 import org.bukkit.Bukkit;
@@ -34,21 +35,21 @@ public class TitanCustomTools extends JavaPlugin {
         getCommand("titanpick").setExecutor(new TitanPickCommand(this));
         getCommand("blocks").setExecutor(new BlocksCommand(this));
 
-        // Register Events
         getServer().getPluginManager().registerEvents(new ToolListener(this), this);
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new ToolProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new AnvilListener(this), this);
-
-        // NEW: Register Fishing Listener
         getServer().getPluginManager().registerEvents(new FishingListener(this), this);
+
+        // Run the Armor Task every second (20 ticks)
+        new ArmorTask(this).runTaskTimer(this, 20L, 20L);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TitanPlaceholders(this).register();
             getLogger().info("Hooked into PlaceholderAPI!");
         }
 
-        getLogger().info("TitanCustomTools has been enabled!");
+        getLogger().info("TitanCustomTools (API Ready) has been enabled!");
     }
 
     @Override

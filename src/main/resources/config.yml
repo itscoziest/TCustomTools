@@ -7,6 +7,54 @@ messages:
 
 
 
+diamond-helmet:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:4
+    - DURABILITY:3
+
+diamond-chestplate:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:4
+    - DURABILITY:3
+
+diamond-leggings:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:4
+    - DURABILITY:3
+
+diamond-boots:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:4
+    - DURABILITY:3
+
+netherite-helmet:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:5
+    - DURABILITY:4
+
+netherite-chestplate:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:5
+    - DURABILITY:4
+
+netherite-leggings:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:5
+    - DURABILITY:4
+
+netherite-boots:
+  enabled: true
+  enchantments:
+    - PROTECTION_ENVIRONMENTAL:5
+    - DURABILITY:4
+
 smelter-pickaxe:
   enabled: true
   enchantments: []
